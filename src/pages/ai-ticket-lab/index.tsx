@@ -1,9 +1,8 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import Layout from '@theme/Layout';
-import Link from '@docusaurus/Link';
 import styles from './styles.module.css';
 
-type Task = {id: string; title: string; detail?: string};
+type Task = {id: string; title: string};
 type Week = {
   number: number;
   title: string;
@@ -12,93 +11,102 @@ type Week = {
   issue: string;
   tasks: Task[];
 };
+type Rhythm = {label: string; text: string};
+type LabData = {
+  version: number;
+  title: string;
+  lead: string;
+  architecture: string[];
+  weeks: Week[];
+  rhythm: Rhythm[];
+  aiRule: {title: string; text: string; example: string};
+};
 
-const weeks: Week[] = [
-  {
-    number: 1,
-    title: 'API skeleton',
-    focus: 'Python · FastAPI · Pydantic · pytest',
-    outcome: 'Работающий HTTP API без LLM, который вы понимаете построчно.',
-    issue: 'https://github.com/mdanshin/learn/issues/1',
-    tasks: [
-      {id: 'w1-uv', title: 'Установить uv и Python 3.12'},
-      {id: 'w1-health', title: 'Сделать GET /health'},
-      {id: 'w1-models', title: 'Описать TicketRequest и TicketAnalysis'},
-      {id: 'w1-endpoint', title: 'Сделать POST /tickets/analyze'},
-      {id: 'w1-rules', title: 'Добавить detect_category() без AI'},
-      {id: 'w1-validation', title: 'Намеренно сломать payload и изучить validation'},
-      {id: 'w1-tests', title: 'Добавить минимум 2 pytest-теста'},
-      {id: 'w1-commit', title: 'Сделать осмысленный git commit'},
-    ],
-  },
-  {
-    number: 2,
-    title: 'Real LLM integration',
-    focus: 'httpx · async/await · structured output · errors',
-    outcome: 'Классификацию выполняет реальная модель, ответ валидируется.',
-    issue: 'https://github.com/mdanshin/learn/issues/2',
-    tasks: [
-      {id: 'w2-provider', title: 'Выбрать один OpenAI-compatible endpoint'},
-      {id: 'w2-httpx', title: 'Добавить httpx и app/llm.py'},
-      {id: 'w2-env', title: 'Убрать ключи и endpoint в environment variables'},
-      {id: 'w2-async', title: 'Сделать async вызов с timeout'},
-      {id: 'w2-json', title: 'Получать structured TicketAnalysis'},
-      {id: 'w2-errors', title: 'Обработать timeout, 4xx и 5xx'},
-      {id: 'w2-mock', title: 'Замокать LLM в тестах'},
-      {id: 'w2-review', title: 'Уметь объяснить весь request path'},
-    ],
-  },
-  {
-    number: 3,
-    title: 'Persistence',
-    focus: 'PostgreSQL · persistence · Docker Compose',
-    outcome: 'Заявки и AI-анализ сохраняются и переживают рестарт API.',
-    issue: 'https://github.com/mdanshin/learn/issues/3',
-    tasks: [
-      {id: 'w3-db', title: 'Поднять PostgreSQL'},
-      {id: 'w3-table', title: 'Создать таблицу tickets'},
-      {id: 'w3-save', title: 'Сохранять input + analysis'},
-      {id: 'w3-get', title: 'Добавить GET /tickets/{id}'},
-      {id: 'w3-list', title: 'Добавить список последних tickets'},
-      {id: 'w3-compose', title: 'Собрать API + DB в compose.yaml'},
-      {id: 'w3-test', title: 'Добавить интеграционный тест'},
-      {id: 'w3-restart', title: 'Проверить сохранность после restart'},
-    ],
-  },
-  {
-    number: 4,
-    title: 'Production hardening',
-    focus: 'logging · retries · Docker · health · documentation',
-    outcome: 'Сервис можно клонировать, поднять и проверить без устного сопровождения.',
-    issue: 'https://github.com/mdanshin/learn/issues/4',
-    tasks: [
-      {id: 'w4-logs', title: 'Добавить structured logging'},
-      {id: 'w4-retry', title: 'Добавить безопасные retries'},
-      {id: 'w4-errors', title: 'Сделать явные error responses'},
-      {id: 'w4-ready', title: 'Добавить health/readiness'},
-      {id: 'w4-image', title: 'Собрать Docker image'},
-      {id: 'w4-env', title: 'Добавить .env.example'},
-      {id: 'w4-tests', title: 'Проверить happy + error paths'},
-      {id: 'w4-readme', title: 'Документировать запуск и архитектуру'},
-      {id: 'w4-metrics', title: 'Замерить latency/cost на 20 tickets'},
-    ],
-  },
-];
+type GitHubContent = {content?: string; encoding?: string};
 
-const allTasks = weeks.flatMap((week) => week.tasks);
+const ALLOWED_LOGIN = 'mdanshin';
+const PRIVATE_DATA_URL = 'https://api.github.com/repos/mdanshin/learn/contents/private/ai-ticket-lab.json?ref=main';
 const STORAGE_KEY = 'ai-ticket-lab-progress-v1';
 
+function decodeGitHubContent(payload: GitHubContent): LabData {
+  if (!payload.content || payload.encoding !== 'base64') {
+    throw new Error('GitHub вернул данные в неожиданном формате.');
+  }
+
+  const binary = atob(payload.content.replace(/\s/g, ''));
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  const text = new TextDecoder('utf-8').decode(bytes);
+  return JSON.parse(text) as LabData;
+}
+
+async function githubRequest(url: string, token: string): Promise<Response> {
+  return fetch(url, {
+    headers: {
+      Accept: 'application/vnd.github+json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
 export default function AiTicketLab(): JSX.Element {
+  const [token, setToken] = useState('');
+  const [data, setData] = useState<LabData | null>(null);
   const [done, setDone] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) setDone(JSON.parse(saved));
     } catch {
-      // Progress tracking is non-critical; the dashboard still works without storage.
+      // Progress is non-critical and contains no authentication data.
     }
   }, []);
+
+  const authenticate = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const candidate = token.trim();
+    if (!candidate) return;
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const userResponse = await githubRequest('https://api.github.com/user', candidate);
+      if (!userResponse.ok) throw new Error('GitHub не принял токен. Проверьте его срок действия и права.');
+
+      const user = (await userResponse.json()) as {login?: string};
+      if (user.login?.toLowerCase() !== ALLOWED_LOGIN) {
+        throw new Error('Доступ разрешён только владельцу этого проекта.');
+      }
+
+      const dataResponse = await githubRequest(PRIVATE_DATA_URL, candidate);
+      if (!dataResponse.ok) {
+        throw new Error('Токен подтверждает личность, но не имеет доступа Contents: read к репозиторию learn.');
+      }
+
+      const payload = (await dataResponse.json()) as GitHubContent;
+      setData(decodeGitHubContent(payload));
+      setToken('');
+    } catch (caught) {
+      setData(null);
+      setError(caught instanceof Error ? caught.message : 'Не удалось выполнить вход.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = () => {
+    setToken('');
+    setData(null);
+    setError('');
+  };
+
+  const allTasks = useMemo(() => data?.weeks.flatMap((week) => week.tasks) ?? [], [data]);
+  const completed = useMemo(() => allTasks.filter((task) => done[task.id]).length, [allTasks, done]);
+  const percent = allTasks.length ? Math.round((completed / allTasks.length) * 100) : 0;
+  const nextTask = allTasks.find((task) => !done[task.id]);
 
   const toggle = (id: string) => {
     setDone((current) => {
@@ -108,28 +116,78 @@ export default function AiTicketLab(): JSX.Element {
     });
   };
 
-  const completed = useMemo(() => allTasks.filter((task) => done[task.id]).length, [done]);
-  const percent = Math.round((completed / allTasks.length) * 100);
-  const nextTask = allTasks.find((task) => !done[task.id]);
-
   const reset = () => {
     setDone({});
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
   };
 
+  if (!data) {
+    return (
+      <Layout title="Private AI Ticket Lab" description="Private AI engineering learning dashboard">
+        <main className={styles.authPage}>
+          <section className={styles.authCard}>
+            <div className={styles.lockIcon} aria-hidden="true">⌁</div>
+            <div className={styles.eyebrow}>PRIVATE WORKSPACE</div>
+            <h1>AI Ticket Lab</h1>
+            <p className={styles.authLead}>
+              План и лабораторные данные не входят в публичную сборку сайта. Для загрузки требуется GitHub-токен владельца <strong>@mdanshin</strong>.
+            </p>
+
+            <form className={styles.authForm} onSubmit={authenticate}>
+              <label htmlFor="github-token">Fine-grained personal access token</label>
+              <input
+                id="github-token"
+                type="password"
+                value={token}
+                onChange={(event) => setToken(event.target.value)}
+                placeholder="github_pat_…"
+                autoComplete="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                disabled={loading}
+              />
+              <button className={styles.primaryButton} type="submit" disabled={loading || !token.trim()}>
+                {loading ? 'Проверяю GitHub…' : 'Войти через GitHub'}
+              </button>
+            </form>
+
+            {error && <div className={styles.authError} role="alert">{error}</div>}
+
+            <div className={styles.securityNote}>
+              <strong>Минимальные права токена</strong>
+              <span>Repository access: только <code>mdanshin/learn</code></span>
+              <span>Repository permissions: <code>Contents → Read-only</code></span>
+              <span>Токен хранится только в памяти этой вкладки и не записывается в localStorage.</span>
+            </div>
+
+            <a
+              className={styles.tokenLink}
+              href="https://github.com/settings/personal-access-tokens/new"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Создать fine-grained token в GitHub ↗
+            </a>
+          </section>
+        </main>
+      </Layout>
+    );
+  }
+
   return (
-    <Layout title="AI Ticket Lab" description="Практический 4-недельный AI engineering lab">
+    <Layout title={data.title} description="Private AI engineering learning dashboard">
       <main className={styles.page}>
         <section className={styles.hero}>
+          <div className={styles.privateBar}>
+            <span className={styles.privateBadge}>PRIVATE · @mdanshin</span>
+            <button className={styles.logoutButton} onClick={logout}>Выйти</button>
+          </div>
           <div className={styles.eyebrow}>AI ENGINEERING · HANDS-ON</div>
-          <h1>AI Ticket Lab</h1>
-          <p className={styles.lead}>
-            Четыре недели, один проект, никакого изучения технологий «в вакууме».
-            Каждый инструмент появляется только тогда, когда он нужен работающему сервису.
-          </p>
+          <h1>{data.title}</h1>
+          <p className={styles.lead}>{data.lead}</p>
           <div className={styles.heroActions}>
-            <a className={styles.primaryButton} href="https://github.com/mdanshin/learn/issues/1" target="_blank" rel="noreferrer">Начать Week 1 ↗</a>
-            <a className={styles.secondaryButton} href="https://github.com/mdanshin/learn" target="_blank" rel="noreferrer">Repository ↗</a>
+            <a className={styles.primaryButton} href={data.weeks[0]?.issue} target="_blank" rel="noreferrer">Начать Week 1 ↗</a>
+            <a className={styles.secondaryButton} href="https://github.com/mdanshin/learn" target="_blank" rel="noreferrer">Private repository ↗</a>
           </div>
         </section>
 
@@ -157,12 +215,17 @@ export default function AiTicketLab(): JSX.Element {
             <h2>Что вы построите за месяц</h2>
           </div>
           <div className={styles.flow}>
-            <span>Client</span><b>→</b><span>FastAPI</span><b>→</b><span>LLM</span><b>→</b><span>Pydantic</span><b>→</b><span>PostgreSQL</span>
+            {data.architecture.map((item, index) => (
+              <React.Fragment key={item}>
+                {index > 0 && <b>→</b>}
+                <span>{item}</span>
+              </React.Fragment>
+            ))}
           </div>
         </section>
 
         <section className={styles.weeks}>
-          {weeks.map((week) => {
+          {data.weeks.map((week) => {
             const weekDone = week.tasks.filter((task) => done[task.id]).length;
             const weekPercent = Math.round((weekDone / week.tasks.length) * 100);
             return (
@@ -185,7 +248,7 @@ export default function AiTicketLab(): JSX.Element {
                     </label>
                   ))}
                 </div>
-                <a className={styles.issueLink} href={week.issue} target="_blank" rel="noreferrer">Открыть лабораторную в GitHub Issue ↗</a>
+                <a className={styles.issueLink} href={week.issue} target="_blank" rel="noreferrer">Открыть лабораторную в private GitHub Issue ↗</a>
               </article>
             );
           })}
@@ -197,22 +260,24 @@ export default function AiTicketLab(): JSX.Element {
             <h2>Как работать параллельно с основной работой</h2>
           </div>
           <div className={styles.rhythmGrid}>
-            <div><strong>10 мин</strong><span>Читаете только то, что требуется текущей задаче.</span></div>
-            <div><strong>50–60 мин</strong><span>Пишете, запускаете, ломаете и исправляете код.</span></div>
-            <div><strong>10 мин</strong><span>Фиксируете, что поняли и что осталось непонятно.</span></div>
-            <div><strong>commit</strong><span>Фиксируете только работающий этап.</span></div>
+            {data.rhythm.map((item) => (
+              <div key={item.label}><strong>{item.label}</strong><span>{item.text}</span></div>
+            ))}
           </div>
         </section>
 
         <section className={styles.aiRule}>
           <div className={styles.eyebrow}>AI CODING RULE</div>
-          <h2>AI — напарник, не генератор проекта</h2>
-          <p>Просите объяснить 10–20 строк, добавить один endpoint, написать один тест или найти одну ошибку. Не просите собрать весь production-ready сервис за один prompt.</p>
-          <div className={styles.promptExample}>«Вот мой код. Найди причину ошибки, но не переписывай проект. Сначала объясни, что происходит.»</div>
+          <h2>{data.aiRule.title}</h2>
+          <p>{data.aiRule.text}</p>
+          <div className={styles.promptExample}>«{data.aiRule.example}»</div>
         </section>
 
         <section className={styles.footerCta}>
-          <div><strong>Состояние чек-листа хранится только в вашем браузере.</strong><div className={styles.muted}>GitHub Issues остаются каноническими лабораторными заданиями.</div></div>
+          <div>
+            <strong>План загружен из private GitHub repository после проверки личности.</strong>
+            <div className={styles.muted}>Только прогресс чек-листа хранится локально в браузере.</div>
+          </div>
           <button className={styles.resetButton} onClick={reset}>Сбросить локальный прогресс</button>
         </section>
       </main>
