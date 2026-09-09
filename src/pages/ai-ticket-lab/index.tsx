@@ -25,7 +25,8 @@ type LabData = {
 type GitHubContent = {content?: string; encoding?: string};
 
 const ALLOWED_LOGIN = 'mdanshin';
-const PRIVATE_DATA_URL = 'https://api.github.com/repos/mdanshin/learn/contents/private/ai-ticket-lab.json?ref=main';
+const PRIVATE_REPOSITORY = 'mdanshin/DanshinTon';
+const PRIVATE_DATA_URL = `https://api.github.com/repos/${PRIVATE_REPOSITORY}/contents/private/ai-ticket-lab.json?ref=main`;
 const STORAGE_KEY = 'ai-ticket-lab-progress-v1';
 
 function decodeGitHubContent(payload: GitHubContent): LabData {
@@ -83,7 +84,7 @@ export default function AiTicketLab(): JSX.Element {
 
       const dataResponse = await githubRequest(PRIVATE_DATA_URL, candidate);
       if (!dataResponse.ok) {
-        throw new Error('Токен подтверждает личность, но не имеет доступа Contents: read к репозиторию learn.');
+        throw new Error(`Токен подтверждает личность, но не имеет Contents: read к private repository ${PRIVATE_REPOSITORY}.`);
       }
 
       const payload = (await dataResponse.json()) as GitHubContent;
@@ -130,7 +131,7 @@ export default function AiTicketLab(): JSX.Element {
             <div className={styles.eyebrow}>PRIVATE WORKSPACE</div>
             <h1>AI Ticket Lab</h1>
             <p className={styles.authLead}>
-              План и лабораторные данные не входят в публичную сборку сайта. Для загрузки требуется GitHub-токен владельца <strong>@mdanshin</strong>.
+              Страница публично содержит только оболочку входа. Сам план и лабораторные загружаются из private GitHub repository только после проверки владельца <strong>@mdanshin</strong>.
             </p>
 
             <form className={styles.authForm} onSubmit={authenticate}>
@@ -155,7 +156,7 @@ export default function AiTicketLab(): JSX.Element {
 
             <div className={styles.securityNote}>
               <strong>Минимальные права токена</strong>
-              <span>Repository access: только <code>mdanshin/learn</code></span>
+              <span>Repository access: только <code>{PRIVATE_REPOSITORY}</code></span>
               <span>Repository permissions: <code>Contents → Read-only</code></span>
               <span>Токен хранится только в памяти этой вкладки и не записывается в localStorage.</span>
             </div>
@@ -187,7 +188,7 @@ export default function AiTicketLab(): JSX.Element {
           <p className={styles.lead}>{data.lead}</p>
           <div className={styles.heroActions}>
             <a className={styles.primaryButton} href={data.weeks[0]?.issue} target="_blank" rel="noreferrer">Начать Week 1 ↗</a>
-            <a className={styles.secondaryButton} href="https://github.com/mdanshin/learn" target="_blank" rel="noreferrer">Private repository ↗</a>
+            <a className={styles.secondaryButton} href="https://github.com/mdanshin/DanshinTon" target="_blank" rel="noreferrer">Private repository ↗</a>
           </div>
         </section>
 
