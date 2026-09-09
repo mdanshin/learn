@@ -70,6 +70,11 @@ const config: Config = {
           label: 'Дорожная карта',
         },
         {
+          to: '/ai-ticket-lab',
+          label: 'AI Ticket Lab',
+          position: 'left',
+        },
+        {
           href: 'https://github.com/mdanshin/learn',
           label: 'GitHub',
           position: 'right',
@@ -83,6 +88,7 @@ const config: Config = {
           title: 'Учебник',
           items: [
             {label: 'Введение', to: '/'},
+            {label: 'AI Ticket Lab', to: '/ai-ticket-lab'},
             {label: 'Месяц 1 — База', to: '/mesyac-1/nedelya-1'},
             {label: 'Месяц 3 — Интеграции', to: '/mesyac-3/nedelya-9'},
           ],
