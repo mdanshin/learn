@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://api.github.com; img-src 'self' data: https://avatars.githubusercontent.com; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none';" />
+  <title>AI Ticket Lab · Private Workspace</title>
+  <link rel="stylesheet" href="./lab.css" />
+</head>
+<body>
+  <noscript>
+    <div class="noscript">Для входа в AI Ticket Lab нужен JavaScript.</div>
+  </noscript>
+
+  <div id="app">
+    <main class="shell auth-shell" id="auth-view">
+      <section class="auth-card">
+        <div class="security-kicker"><span class="status-dot"></span> PRIVATE WORKSPACE</div>
+        <h1>AI Ticket Lab</h1>
+        <p class="auth-lead">
+          Практический AI-engineering roadmap. Содержимое загружается только после проверки GitHub-пользователя <strong>@mdanshin</strong> и доступа к private repository.
+        </p>
+
+        <form id="auth-form" class="auth-form" autocomplete="off">
+          <label for="token">Fine-grained GitHub token</label>
+          <div class="token-row">
+            <input id="token" name="token" type="password" placeholder="github_pat_…" spellcheck="false" autocapitalize="none" autocomplete="off" required />
+            <button type="submit" class="primary" id="login-button">Войти</button>
+          </div>
+          <p class="hint">Repository access: <code>mdanshin/DanshinTon</code> · Contents: Read-only</p>
+        </form>
+
+        <div id="auth-error" class="error" hidden></div>
+
+        <div class="security-grid">
+          <div><span>Identity</span><strong>GitHub @mdanshin</strong></div>
+          <div><span>Private data</span><strong>DanshinTon</strong></div>
+          <div><span>Token storage</span><strong>Memory only</strong></div>
+          <div><span>Transport</span><strong>HTTPS required</strong></div>
+        </div>
+
+        <a class="text-link" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">Создать fine-grained token ↗</a>
+      </section>
+    </main>
+
+    <main class="shell dashboard" id="dashboard-view" hidden>
+      <header class="topbar">
+        <div>
+          <div class="security-kicker"><span class="status-dot"></span> AUTHENTICATED · @mdanshin</div>
+          <h1 id="title">AI Ticket Lab</h1>
+        </div>
+        <button class="ghost" id="logout-button">Выйти</button>
+      </header>
+
+      <section class="hero-card">
+        <div>
+          <div class="eyebrow">AI ENGINEERING · HANDS-ON</div>
+          <p id="lead" class="hero-lead"></p>
+        </div>
+        <div class="hero-meta">
+          <div><span>Формат</span><strong>4 недели · 1 проект</strong></div>
+          <div><span>Ритм</span><strong>4 сессии / неделя</strong></div>
+        </div>
+      </section>
+
+      <section class="metrics">
+        <article class="metric-card progress-card">
+          <div class="metric-head"><span>Общий прогресс</span><strong id="progress-percent">0%</strong></div>
+          <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+          <div class="muted" id="progress-label">0 шагов завершено</div>
+        </article>
+        <article class="metric-card">
+          <span class="card-label">Следующий шаг</span>
+          <strong id="next-task">—</strong>
+          <p class="muted">Не переходите к следующей технологии заранее.</p>
+        </article>
+        <article class="metric-card">
+          <span class="card-label">Правило</span>
+          <strong>Работающий этап = commit</strong>
+          <p class="muted">Каждое изменение вы должны уметь объяснить.</p>
+        </article>
+      </section>
+
+      <section class="section-card architecture-card">
+        <div>
+          <div class="eyebrow">TARGET ARCHITECTURE</div>
+          <h2>Что вы построите</h2>
+        </div>
+        <div id="architecture" class="architecture-flow"></div>
+      </section>
+
+      <section id="weeks" class="weeks"></section>
+
+      <section class="section-card">
+        <div class="eyebrow">WEEKLY RHYTHM</div>
+        <h2>Как работать параллельно с основной работой</h2>
+        <div id="rhythm" class="rhythm-grid"></div>
+      </section>
+
+      <section class="section-card ai-rule-card">
+        <div class="eyebrow">AI CODING RULE</div>
+        <h2 id="ai-rule-title"></h2>
+        <p id="ai-rule-text"></p>
+        <blockquote id="ai-rule-example"></blockquote>
+      </section>
+
+      <footer class="footer-card">
+        <div>
+          <strong>Прогресс хранится только в этом браузере.</strong>
+          <div class="muted">Токен не сохраняется в localStorage/sessionStorage.</div>
+        </div>
+        <button class="ghost danger" id="reset-button">Сбросить прогресс</button>
+      </footer>
+    </main>
+  </div>
+
+  <script src="./lab.js" defer></script>
+</body>
+</html>
