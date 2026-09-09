@@ -40,7 +40,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          routeBasePath: '/', // docs = корень сайта, без префикса /docs
+          routeBasePath: 'fullstack',
           editUrl: 'https://github.com/mdanshin/learn/tree/main/',
         },
         blog: false,
@@ -64,15 +64,15 @@ const config: Config = {
       },
       items: [
         {
-          type: 'docSidebar',
-          sidebarId: 'roadmapSidebar',
-          position: 'left',
-          label: 'Дорожная карта',
-        },
-        {
           to: '/ai-ticket-lab',
           label: 'AI Ticket Lab',
           position: 'left',
+        },
+        {
+          type: 'docSidebar',
+          sidebarId: 'roadmapSidebar',
+          position: 'left',
+          label: 'Старый roadmap',
         },
         {
           href: 'https://github.com/mdanshin/learn',
@@ -87,10 +87,10 @@ const config: Config = {
         {
           title: 'Учебник',
           items: [
-            {label: 'Введение', to: '/'},
             {label: 'AI Ticket Lab', to: '/ai-ticket-lab'},
-            {label: 'Месяц 1 — База', to: '/mesyac-1/nedelya-1'},
-            {label: 'Месяц 3 — Интеграции', to: '/mesyac-3/nedelya-9'},
+            {label: 'Старый roadmap', to: '/fullstack/'},
+            {label: 'Месяц 1 — База', to: '/fullstack/mesyac-1/nedelya-1'},
+            {label: 'Месяц 3 — Интеграции', to: '/fullstack/mesyac-3/nedelya-9'},
           ],
         },
         {
