@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "title": "AI Ticket Lab",
+  "lead": "Четыре недели, один проект, никакого изучения технологий в вакууме. Каждый инструмент появляется только тогда, когда он нужен работающему сервису.",
+  "architecture": ["Client", "FastAPI", "LLM", "Pydantic", "PostgreSQL"],
+  "weeks": [
+    {
+      "number": 1,
+      "title": "API skeleton",
+      "focus": "Python · FastAPI · Pydantic · pytest",
+      "outcome": "Работающий HTTP API без LLM, который вы понимаете построчно.",
+      "issue": "https://github.com/mdanshin/learn/issues/1",
+      "tasks": [
+        {"id":"w1-uv","title":"Установить uv и Python 3.12"},
+        {"id":"w1-health","title":"Сделать GET /health"},
+        {"id":"w1-models","title":"Описать TicketRequest и TicketAnalysis"},
+        {"id":"w1-endpoint","title":"Сделать POST /tickets/analyze"},
+        {"id":"w1-rules","title":"Добавить detect_category() без AI"},
+        {"id":"w1-validation","title":"Намеренно сломать payload и изучить validation"},
+        {"id":"w1-tests","title":"Добавить минимум 2 pytest-теста"},
+        {"id":"w1-commit","title":"Сделать осмысленный git commit"}
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Real LLM integration",
+      "focus": "httpx · async/await · structured output · errors",
+      "outcome": "Классификацию выполняет реальная модель, ответ валидируется.",
+      "issue": "https://github.com/mdanshin/learn/issues/2",
+      "tasks": [
+        {"id":"w2-provider","title":"Выбрать один OpenAI-compatible endpoint"},
+        {"id":"w2-httpx","title":"Добавить httpx и app/llm.py"},
+        {"id":"w2-env","title":"Убрать ключи и endpoint в environment variables"},
+        {"id":"w2-async","title":"Сделать async вызов с timeout"},
+        {"id":"w2-json","title":"Получать structured TicketAnalysis"},
+        {"id":"w2-errors","title":"Обработать timeout, 4xx и 5xx"},
+        {"id":"w2-mock","title":"Замокать LLM в тестах"},
+        {"id":"w2-review","title":"Уметь объяснить весь request path"}
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Persistence",
+      "focus": "PostgreSQL · persistence · Docker Compose",
+      "outcome": "Заявки и AI-анализ сохраняются и переживают рестарт API.",
+      "issue": "https://github.com/mdanshin/learn/issues/3",
+      "tasks": [
+        {"id":"w3-db","title":"Поднять PostgreSQL"},
+        {"id":"w3-table","title":"Создать таблицу tickets"},
+        {"id":"w3-save","title":"Сохранять input + analysis"},
+        {"id":"w3-get","title":"Добавить GET /tickets/{id}"},
+        {"id":"w3-list","title":"Добавить список последних tickets"},
+        {"id":"w3-compose","title":"Собрать API + DB в compose.yaml"},
+        {"id":"w3-test","title":"Добавить интеграционный тест"},
+        {"id":"w3-restart","title":"Проверить сохранность после restart"}
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Production hardening",
+      "focus": "logging · retries · Docker · health · documentation",
+      "outcome": "Сервис можно клонировать, поднять и проверить без устного сопровождения.",
+      "issue": "https://github.com/mdanshin/learn/issues/4",
+      "tasks": [
+        {"id":"w4-logs","title":"Добавить structured logging"},
+        {"id":"w4-retry","title":"Добавить безопасные retries"},
+        {"id":"w4-errors","title":"Сделать явные error responses"},
+        {"id":"w4-ready","title":"Добавить health/readiness"},
+        {"id":"w4-image","title":"Собрать Docker image"},
+        {"id":"w4-env","title":"Добавить .env.example"},
+        {"id":"w4-tests","title":"Проверить happy + error paths"},
+        {"id":"w4-readme","title":"Документировать запуск и архитектуру"},
+        {"id":"w4-metrics","title":"Замерить latency/cost на 20 tickets"}
+      ]
+    }
+  ],
+  "rhythm": [
+    {"label":"10 мин","text":"Читаете только то, что требуется текущей задаче."},
+    {"label":"50–60 мин","text":"Пишете, запускаете, ломаете и исправляете код."},
+    {"label":"10 мин","text":"Фиксируете, что поняли и что осталось непонятно."},
+    {"label":"commit","text":"Фиксируете только работающий этап."}
+  ],
+  "aiRule": {
+    "title": "AI — напарник, не генератор проекта",
+    "text": "Просите объяснить 10–20 строк, добавить один endpoint, написать один тест или найти одну ошибку. Не просите собрать весь production-ready сервис за один prompt.",
+    "example": "Вот мой код. Найди причину ошибки, но не переписывай проект. Сначала объясни, что происходит."
+  }
+}
